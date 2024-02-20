@@ -92,7 +92,8 @@ class UserInfoView(APIView):
     '''
     회원 정보
     '''
-    @swagger_auto_schema(responses={200:user_retrieve_response})
+    permission_classes = [LoginRequired]
+    authentication_classes = [JWTAuthentication]
     def get(self, request):
         '''
         회원 정보 조회
