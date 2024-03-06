@@ -39,6 +39,8 @@ INSTALLED_APPS = [
 
     'users',
     'oauth',
+    'GPT',
+    'apis',
 
     'drf_yasg',
 ]
