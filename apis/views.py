@@ -16,13 +16,12 @@ def parse_string_with_newlines(input_string):
 
     return parsed_data
 
-@api_view(('POST',))
-def gpt_test(request): 
-    prompt = json.loads(request.body)["prompt"]
-    prompt = str(prompt)
-    response = get_gpt_response(prompt)
-    print(response)
-    return Response({'Response': response})
+def openai_call_by_prompt(prompt):
+    try:
+        openai_response = get_gpt_response(prompt)
+    except:
+        return Response({'Response':'OpenAI Server is not working'},status=status.HTTP_503_SERVICE_UNAVAILABLE)
+    return Response({'Response': openai_response})
 
 @api_view(('POST',))
 def openai_translate(request):
@@ -30,8 +29,7 @@ def openai_translate(request):
     prompt = """1. translate the text that follows the input, without omitting anything.\n\
             2. Translate Korean proper nouns as they are pronounced, without paraphrasing.\n\n\
             """+str(prompt)
-    response = get_gpt_response(prompt)
-    return Response({'Response':response})
+    return openai_call_by_prompt(prompt)
 
 @api_view(['POST',])
 def openai_outline(request):
@@ -53,11 +51,8 @@ def openai_outline(request):
     4.요청사유
     5.끝인사"""
 
+
+    response = openai_call_by_prompt(prompt)
+    response.data['Response'] = parse_string_with_newlines(response.data['Response'])
     
-    try:
-        openai_response = get_gpt_response(prompt)
-    except:
-        return Response({'Response':'OpenAI Server is not working'},status=status.HTTP_503_SERVICE_UNAVAILABLE)
-    
-    response = parse_string_with_newlines(openai_response)
-    return Response({'Response':response})
+    return response
