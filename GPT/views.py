@@ -1,20 +1,27 @@
 from django.http import JsonResponse 
-import openai
+from openai import OpenAI
 from config.settings import env
 
+client = OpenAI(api_key=env('OPENAI_KEY'))
+
 def get_gpt_response(prompt):
-    query = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo",
-        messages=[
-            {
-                'role':'user',
-                'content':prompt
-            }
-        ],
-        max_token=1024,
-        n=1,
-        stop=None,
-        temperature=0.5,
-    )
-    response = query.choices[0].message["content"]
-    return response
+    # print("prompt: ",prompt)
+    
+    try:
+        response = client.chat.completions.create(
+            model='gpt-3.5-turbo',
+            messages=[
+                {
+                    'role':'user',
+                    'content':prompt
+                },
+            ],
+            max_tokens=1024
+        )
+    except:
+        # print('OpenAI API is not working')
+        return None
+
+    # print(response.choices[0].message.content)
+
+    return response.choices[0].message.content

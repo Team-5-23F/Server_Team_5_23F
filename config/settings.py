@@ -43,13 +43,14 @@ INSTALLED_APPS = [
     'apis',
 
     'drf_yasg',
+    'openai',
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
+    # 'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -96,8 +97,8 @@ AUTHENTICATION_BACKENDS = (
 # DRF 인증 설정
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [  # 기본 Permission 설정
-        # 'rest_framework.permissions.AllowAny',  # 모든 계정 액세스 허용
-        'rest_framework.permissions.IsAuthenticated',
+        'rest_framework.permissions.AllowAny',  # 모든 계정 액세스 허용
+        # 'rest_framework.permissions.IsAuthenticated',
     ],
     'DEFAULT_AUTHENTICATION_CLASSES': (  # Authenticationt 설정
         # 'rest_framework.authentication.SessionAuthentication',
