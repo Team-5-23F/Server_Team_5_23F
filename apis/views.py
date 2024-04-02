@@ -6,10 +6,12 @@ from rest_framework import status
 from GPT.views import get_gpt_response
 
 def parse_string_with_newlines(input_string):
+    print(input_string)
     lines = input_string.split('\n')
     parsed_data = []
-
     for line in lines:
+        if '0'>line[0] or '9'<line[0]:
+            continue
         index_of_first_space = line.find(' ')
         if index_of_first_space != -1:
             parsed_data.append(line[index_of_first_space+1:])
