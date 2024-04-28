@@ -115,7 +115,7 @@ Example Answer ( for you ):
     response_data['Original'] = data["Sentence"]
     
     
-    return Response(response_data)
+    return Response(response_data,status=status.HTTP_200_OK)
 
 
 @api_view(['POST',])
@@ -158,5 +158,6 @@ Example Answer ( for you ):
 
     if response_data.status_code is not status.HTTP_200_OK:
         return Response(status=status.HTTP_503_SERVICE_UNAVAILABLE)
+    
     response = json.loads(response_data.data["Response"])
-    return Response(response)
+    return Response(response,status=status.HTTP_200_OK)
