@@ -103,7 +103,7 @@ class KakaoCallbackView(APIView):
         user_info_res = requests.get(kakao_profile_uri, headers=auth_headers)
         
         user_info_json = user_info_res.json()
-        # print(user_info_json)
+        print(user_info_json)
         social_type = 'kakao'
         social_id = f"{social_type}_{user_info_json.get('id')}"
         # kakao_account = user_info_json.get('kakao_account')
