@@ -7,12 +7,11 @@ from GPT.views import get_gpt_response
 from rest_framework.permissions import IsAuthenticated
 
 def parse_string_with_index_number(index_list):
-    print(index_list)
-    index_list = eval(index_list)
     ret = []
-    for index in index_list:
-        if index.strip() is not None:
-            ret.append(index.strip())
+    # print(index_list)
+    # index_list = eval(index_list)
+    # for index in index_list:
+    #     ret.append(index.value)
     return ret
 
 def parse_string_with_index_name(original, input):
@@ -50,7 +49,7 @@ def openai_outline(request):
     data = json.loads(request.body)
     prompt = ""
     try:
-        prompt += "[Task]: 자세한 설명이나 이유를 생략하고, %s를 작성하는 글의 단락별 형식을 list 형식으로 '[ ]' 안에 ','로 구분하여 제공해줘.\n"%data["Task"]
+        prompt += "[Task]: 자세한 설명이나 이유를 생략하고, %s를 작성하는 글의 단락별 아웃라인을 json 형식으로 제공해줘.\n"%data["Task"]
         prompt += "[Context] : %s인 상황이야\n"%data["Context"]
     except:
         return Response(status=status.HTTP_400_BAD_REQUEST)
@@ -61,14 +60,20 @@ def openai_outline(request):
     [Context]: 개인면담요청인 상황이야
     
     Example Answer ( for you ):
-    [ "인삿말", "자기소개", "요청사항", "요청사유", "끝인사" ]"""
+    {
+        "para1":"인삿말",
+        "para2":"자기소개",
+        "para3":"요청사항",
+        "para4":"요청사유",
+        "para5":"끝인사"
+    }"""
 
     response = openai_call_by_prompt(prompt)
 
     if response.status_code is not status.HTTP_200_OK:
         return Response(status=status.HTTP_503_SERVICE_UNAVAILABLE)
-    
-    return Response({'Index': parse_string_with_index_number(response.data['Response'])})
+    index_paragraph = eval(response.data['Response'])
+    return Response({"NumOfIndex":len(index_paragraph),"Index":index_paragraph})
 
 @api_view(['POST',])
 @permission_classes([IsAuthenticated])
