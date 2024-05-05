@@ -8,19 +8,16 @@ from rest_framework.permissions import IsAuthenticated
 
 def parse_string_with_index_number(index_list):
     print(index_list)
+    index_list = eval(index_list)
+    ret = []
     for index in index_list:
-        index = index.strip()
-    return index_list
+        if index.strip() is not None:
+            ret.append(index.strip())
+    return ret
 
-def parse_string_with_index_name(input_string):
-    data = {'Ambiguity':'', 'Alternative':'', 'Nuance':''}
-    print(input_string)
-    ambiguity_index = input_string.find('[Task1]: ')
-    alternative_index = input_string.find('[Task2]: ')
-    nuance_index = input_string.find('[Task3]: ')
-    data['Ambiguity'] = input_string[ambiguity_index+len('[Task1]: '):alternative_index].strip()
-    data['Alternative'] = input_string[alternative_index+len('[Task2]: '):nuance_index].strip()
-    data['Nuance'] = input_string[nuance_index+len('[Task3]: '):].strip()
+def parse_string_with_index_name(original, input):
+    input = eval(input)
+    data = [original,input["Task1"].strip(), input["Task2"].strip(),input["Task3"].strip()]
     return data
 
 def openai_call_by_prompt(prompt):
@@ -53,18 +50,18 @@ def openai_outline(request):
     data = json.loads(request.body)
     prompt = ""
     try:
-        prompt += "[Task]: 자세한 설명이나 이유를 생략하고, %s를 작성하는 글의 형식을 list 형식으로 '[ ]' 안에 ','로 구분하여 제공해줘.\n"%data["Task"]
+        prompt += "[Task]: 자세한 설명이나 이유를 생략하고, %s를 작성하는 글의 단락별 형식을 list 형식으로 '[ ]' 안에 ','로 구분하여 제공해줘.\n"%data["Task"]
         prompt += "[Context] : %s인 상황이야\n"%data["Context"]
     except:
         return Response(status=status.HTTP_400_BAD_REQUEST)
     
     prompt += """[Example] : 
     Example Question ( for me ):
-    [Task]: 메일을 작성하는 글의 형식을 제공해줘
+    [Task]: 메일을 작성하는 글의 단락별 형식을 제공해줘
     [Context]: 개인면담요청인 상황이야
     
     Example Answer ( for you ):
-    [ 인삿말, 자기소개, 요청사항, 요청사유, 끝인사 ]"""
+    [ "인삿말", "자기소개", "요청사항", "요청사유", "끝인사" ]"""
 
     response = openai_call_by_prompt(prompt)
 
@@ -80,7 +77,7 @@ def openai_feedback_line(request):
     prompt = ""
     try:
         prompt += """\
-[Task0]: Task1,2,3에 대한 답변을 제외하고 다른 어떤 답변이나 인사도 하지마.
+[Task0]: Task1,2,3에 대한 답변을 제외하고 다른 어떤 답변이나 인사도 하지마, 형식은 Json 형식으로 제공해줘.
 [Task1] : 밑의 Sentence에서 조동사, 시제, 그리고 전치사를 위주로 어색한 부분을 찾아서 영어로 제시하고 이유를 한글로 설명해줘.
 [Task2]: 어색한 부분을 해결할 영문 대안을 제시해줘.
 [Task3]: 원래의 문장과 어떤 점이 달라졌는지 뉘앙스를 한국어로 설명해줘.
@@ -90,10 +87,11 @@ Example Question ( for me ):
 [Sentence]: "There were psychological studies in which subjects were shown photographs of people’s faces and asked to identify the expression or state of mind evinced."
 
 Example Answer ( for you ):
-[Task1]: 연구나 이론의 결과는 현재에도 영향이 있기 때문에 과거형 동사보다 현재완료형 동사가 어울립니다.
-[Task2]: There were psychological studies in which subjects were shown photographs of people’s faces and asked to identify the expression or state of mind evinced.
-[Task3]: 연구가 과거에만 존재하던 뉘앙스에서 벗어나, 연구가 진행되었다는 의미를 잘 보여줍니다.\
-"""%data["Sentence"]
+{
+"Task1": "연구나 이론의 결과는 현재에도 영향이 있기 때문에 과거형 동사보다 현재완료형 동사가 어울립니다.",
+"Task2": "There were psychological studies in which subjects were shown photographs of people’s faces and asked to identify the expression or state of mind evinced.",
+"Task3": "연구가 과거에만 존재하던 뉘앙스에서 벗어나, 연구가 진행되었다는 의미를 잘 보여줍니다."
+}"""%data["Sentence"]
     except:
         return Response(status=status.HTTP_400_BAD_REQUEST)
     
@@ -101,9 +99,7 @@ Example Answer ( for you ):
 
     if response.status_code is not status.HTTP_200_OK:
         return Response(status=status.HTTP_503_SERVICE_UNAVAILABLE)
-    response_data = parse_string_with_index_name(response.data['Response'])
-    response_data['Original'] = data["Sentence"]
-    
+    response_data = parse_string_with_index_name(data["Sentence"],response.data['Response'])
     
     return Response(response_data,status=status.HTTP_200_OK)
 
