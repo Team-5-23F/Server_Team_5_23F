@@ -128,13 +128,13 @@ Example Question ( for me ):
 Example Answer ( for you ):
 [
 {
-“Sentence1”: "If you can prioritize responses, you can deepen connections with individual customers, whether through one-off interactions or through more meaningful connections.”,
+“Sentence”: "If you can prioritize responses, you can deepen connections with individual customers, whether through one-off interactions or through more meaningful connections.”,
 “Task1”: “문장의 흐름이 약간 어색한데, "whether through one-off interactions or through more meaningful connections" 부분이 더 자연스럽게 통일되어야 합니다.”,
 “Task2”: "By prioritizing responses, you can deepen connections with individual customers, whether through one-off interactions or through more substantial engagements.”,
 “Task3”: “수정된 문장은 구문의 일관성을 높이고, "substantial engagements"를 통해 보다 의미 있는 상호 작용에 대한 강조를 더합니다.”
 },
 {
-“Sentence2”: “Especially in cases where customers have posted favorable comments about a brand, product, or service.”,
+“Sentence”: “Especially in cases where customers have posted favorable comments about a brand, product, or service.”,
 “Task1”: “문장에서 "Especially in cases where"로 시작하는 부분이 조금 어색합니다.”,
 “Task2”: "Particularly when customers have posted favorable comments about a brand, product, or service.”,
 “Task3”: “원래의 문장은 특정 상황을 강조하려는 의도였지만, 수정된 문장은 보다 자연스럽게 그 강조를 전달합니다.”
