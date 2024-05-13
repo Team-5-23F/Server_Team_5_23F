@@ -112,6 +112,7 @@ class KakaoCallbackView(APIView):
         #     return Response(status=status.HTTP_400_BAD_REQUEST)
         # user_email = kakao_account.get('email')
 
+        print(social_type,'\n',social_id,'\n')
         # 회원가입 및 로그인
         res = login_api(social_type=social_type, social_id=social_id, email=None)
         return res

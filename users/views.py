@@ -3,7 +3,7 @@ from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework_simplejwt.authentication import JWTAuthentication
-
+from rest_framework.decorators import api_view,permission_classes
 
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
@@ -71,6 +71,36 @@ class LogoutView(APIView):
 
         return Response(status=status.HTTP_202_ACCEPTED)
     
+@api_view(['POST',])
+@permission_classes([AllowAny])
+def login_api(request):
+    '''
+    회원가입 및 로그인
+    '''
+    social_type = request.data['social_type']
+    social_id = request.data['social_id']
+    email = None
+    login_view = LoginView()
+    try:
+        UserModel.objects.get(social_id=social_id)
+        data = {
+            'social_id': social_id,
+            'email': email,
+        }
+        response = login_view.object(data=data)
+
+    except UserModel.DoesNotExist:
+        data = {
+            'social_type': social_type,
+            'social_id': social_id,
+            'email': email,
+        }
+        user_view = UserView()
+        login = user_view.get_or_create_user(data=data)
+
+        response = login_view.object(data=data) if login.status_code == 201 else login
+
+    return response
 
 class TokenRefreshView(APIView):
     permission_classes = [AllowAny]
