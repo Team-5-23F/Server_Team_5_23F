@@ -26,7 +26,8 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('oauth/', include('oauth.urls')),
     path('users/', include('users.urls', namespace='users')),
-    path('apis/',include('apis.urls', namespace='apis')),
+    path('apis/', include('apis.urls', namespace='apis')),
+    path('writings/', include('writings.urls', namespace='writings')),
 ]
 
 
