@@ -1,11 +1,10 @@
 from rest_framework.serializers import ModelSerializer
 from .models import *
-from users.serializers import UserInfoSerializer
 
 class ParagraphSerializer(ModelSerializer):
     class Meta:
         model = Paragraph
-        fields = ['content','bookmark']
+        fields = ('pk','content','bookmark',)
 
 class ParagraphCreateSerializer(ModelSerializer):
     class Meta:
@@ -23,7 +22,7 @@ class WritingSerializer(ModelSerializer):
     paragraphs = ParagraphSerializer(many=True)
     class Meta:
         model = Writing
-        fields = ["pk","format","purpose","paragraphs"]
+        fields = ("pk","format","purpose","paragraphs",)
 
 class WritingBaseModelSerializer(ModelSerializer):
     class Meta:
