@@ -45,6 +45,12 @@ class WritingAPIView(APIView):
                 serializer_para.save(writing=writing)
         
         return Response(WritingSerializer(writing).data,status=status.HTTP_200_OK)
+    def delete(self, request):
+        delete_blog = Writing.objects.get(pk=request.GET.get('writing_id', None))
+        delete_blog.delete()
+
+        return Response(status=status.HTTP_202_ACCEPTED)
+
 
 class ParagraphListAPIView(APIView):
     permission_classes = [IsAuthenticated]
