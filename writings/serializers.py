@@ -4,12 +4,12 @@ from .models import *
 class ParagraphSerializer(ModelSerializer):
     class Meta:
         model = Paragraph
-        fields = ('pk','content','bookmark',)
+        fields = ('pk','index','content','bookmark',)
 
 class ParagraphCreateSerializer(ModelSerializer):
     class Meta:
         model = Paragraph
-        fields = ["pk","content","writing"]
+        fields = ["pk",'index',"content","writing"]
         read_only_fields = ["writing"]
 
 class WritingCreateSerializer(ModelSerializer):

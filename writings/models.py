@@ -9,6 +9,7 @@ class Writing(models.Model):
     writer = models.ForeignKey(to=User,on_delete=models.CASCADE)
 
 class Paragraph(models.Model):
+    index = models.TextField(verbose_name='목차')
     content = models.TextField(verbose_name='내용')
     bookmark = models.BooleanField(verbose_name='즐겨찾기',default=False)
     writing = models.ForeignKey(to=Writing,on_delete=models.CASCADE,related_name='paragraphs')

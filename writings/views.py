@@ -13,7 +13,13 @@ class WritingAPIView(APIView):
         user = request.user
         writing_id = request.GET.get('writing_id', None)
         if writing_id is None:
-            return Response(status=status.HTTP_402_PAYMENT_REQUIRED)
+            # 리스트
+            writings = Writing.objects.filter(writer=request.user)
+            if not writings.exists():
+                return Response(status=status.HTTP_204_NO_CONTENT)
+            
+            serializer = WritingListModelSerializer(writings, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
         
         writing = get_object_or_404(Writing,pk=writing_id, writer=user)
 
@@ -40,25 +46,19 @@ class WritingAPIView(APIView):
         
         return Response(WritingSerializer(writing).data,status=status.HTTP_200_OK)
 
-class WritingListAPIView(APIView):
-    permission_classes = [IsAuthenticated]
-    def get(self, request):
-        writings = Writing.objects.filter(writer=request.user)
-        if not writings.exists():
-            return Response(status=status.HTTP_204_NO_CONTENT)
-        
-        serializer = WritingListModelSerializer(data=writings, many=True)
-        if not serializer.is_valid():
-            return Response(status=status.HTTP_400_BAD_REQUEST)
-        return Response(serializer.data, status=status.HTTP_200_OK)
-
 class ParagraphListAPIView(APIView):
     permission_classes = [IsAuthenticated]
     def get(self, request):
-        writings = Writing.objects.filter(writer=request.user)
-
-        paragraphs = Paragraph.objects.filter(writing__in=writings,bookmark=True)
-        serializer = ParagraphSerializer(paragraphs,many=True)
+        paragraph_id = request.GET.get('paragraph_id', None)
+        print(paragraph_id)
+        if paragraph_id is None:
+            writings = Writing.objects.filter(writer=request.user)
+            paragraphs = Paragraph.objects.filter(writing__in=writings,bookmark=True)
+            serializer = ParagraphSerializer(paragraphs,many=True)
+        else:
+            paragraph = get_object_or_404(Paragraph, pk=paragraph_id)
+            serializer = ParagraphSerializer(paragraph)
+        
         return Response(data=serializer.data,status=status.HTTP_200_OK)
     def patch(self,request):
         user = request.user
