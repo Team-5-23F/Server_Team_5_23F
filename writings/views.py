@@ -55,17 +55,17 @@ class ParagraphListAPIView(APIView):
     permission_classes = [IsAuthenticated]
     def get(self, request):
         paragraph_id = request.GET.get('paragraph_id', None)
-        print(paragraph_id)
         if paragraph_id is None:
             writings = Writing.objects.filter(writer=request.user)
             paragraphs = Paragraph.objects.filter(writing__in=writings,bookmark=True)
-            serializer = ParagraphSerializer(paragraphs,many=True)
+            serializer = ParagraphListModelSerializer(paragraphs,many=True)
+            return Response(data=serializer.data,status=status.HTTP_200_OK)
         else:
             writings = Writing.objects.filter(writer=request.user)
             paragraph = Paragraph.objects.filter(writing__in=writings,pk=paragraph_id)
             serializer = ParagraphSerializer(paragraph)
-        
-        return Response(data=serializer.data,status=status.HTTP_200_OK)
+            return Response(data=serializer.data,status=status.HTTP_200_OK)
+
     def patch(self,request):
         user = request.user
 

@@ -12,6 +12,7 @@ class ParagraphCreateSerializer(ModelSerializer):
         fields = ["pk",'index',"content","writing"]
         read_only_fields = ["writing"]
 
+
 class WritingCreateSerializer(ModelSerializer):
     class Meta:
         model = Writing
@@ -27,9 +28,21 @@ class WritingSerializer(ModelSerializer):
 class WritingBaseModelSerializer(ModelSerializer):
     class Meta:
         model = Writing
-        fields = '__all__'
+        fields = ['pk','format','purpose']
 
 class WritingListModelSerializer(WritingBaseModelSerializer):
-    class Meta:
+    class Meta(WritingBaseModelSerializer.Meta):
         fields = ['pk','format','purpose']
+        depth = 1
+
+
+class ParagraphBaseModelSerializer(ModelSerializer):
+    class Meta:
+        model = Paragraph
+        fields = '__all__'
+
+class ParagraphListModelSerializer(ParagraphBaseModelSerializer):
+    writing = WritingBaseModelSerializer()
+    class Meta(ParagraphBaseModelSerializer.Meta):
+        fields = ['pk','index','writing']
         depth = 1
