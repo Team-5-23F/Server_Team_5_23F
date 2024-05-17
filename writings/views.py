@@ -22,7 +22,6 @@ class WritingAPIView(APIView):
             return Response(serializer.data, status=status.HTTP_200_OK)
         
         writing = get_object_or_404(Writing,pk=writing_id, writer=user)
-
         serializer = WritingSerializer(writing)
         return Response(serializer.data,status=status.HTTP_200_OK)
     
@@ -46,7 +45,7 @@ class WritingAPIView(APIView):
         
         return Response(WritingSerializer(writing).data,status=status.HTTP_200_OK)
     def delete(self, request):
-        delete_blog = Writing.objects.get(pk=request.GET.get('writing_id', None))
+        delete_blog = Writing.objects.get(pk=request.GET.get('writing_id', None),writer=request.user)
         delete_blog.delete()
 
         return Response(status=status.HTTP_202_ACCEPTED)
@@ -62,7 +61,8 @@ class ParagraphListAPIView(APIView):
             paragraphs = Paragraph.objects.filter(writing__in=writings,bookmark=True)
             serializer = ParagraphSerializer(paragraphs,many=True)
         else:
-            paragraph = get_object_or_404(Paragraph, pk=paragraph_id)
+            writings = Writing.objects.filter(writer=request.user)
+            paragraph = Paragraph.objects.filter(writing__in=writings,pk=paragraph_id)
             serializer = ParagraphSerializer(paragraph)
         
         return Response(data=serializer.data,status=status.HTTP_200_OK)
