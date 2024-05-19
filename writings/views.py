@@ -45,8 +45,11 @@ class WritingAPIView(APIView):
         
         return Response(WritingSerializer(writing).data,status=status.HTTP_200_OK)
     def delete(self, request):
-        delete_blog = Writing.objects.get(pk=request.GET.get('writing_id', None),writer=request.user)
-        delete_blog.delete()
+        writing_id = request.GET.get('writing_id', None)
+        if writing_id is None:
+            return Response(status=status.HTTP_403_FORBIDDEN)
+        delete_writing = get_object_or_404(Writing,pk=request.GET.get('writing_id', None),writer=request.user)
+        delete_writing.delete()
 
         return Response(status=status.HTTP_202_ACCEPTED)
 
@@ -58,12 +61,25 @@ class ParagraphListAPIView(APIView):
         if paragraph_id is None:
             writings = Writing.objects.filter(writer=request.user)
             paragraphs = Paragraph.objects.filter(writing__in=writings,bookmark=True)
+            if not paragraphs.exists():
+                return Response(status=status.HTTP_204_NO_CONTENT)
+            
             serializer = ParagraphListModelSerializer(paragraphs,many=True)
             return Response(data=serializer.data,status=status.HTTP_200_OK)
         else:
-            writings = Writing.objects.filter(writer=request.user)
-            paragraph = Paragraph.objects.filter(writing__in=writings,pk=paragraph_id)
-            serializer = ParagraphSerializer(paragraph)
+            user = request.user
+
+            writing_id = request.GET.get('writing_id', None)
+            if writing_id is None:
+                return Response(status=status.HTTP_403_FORBIDDEN)
+            writing = get_object_or_404(Writing,writer=user,pk=writing_id)
+
+            paragraph_id = request.GET.get('paragraph_id', None)
+            if paragraph_id is None:
+                return Response(status=status.HTTP_403_FORBIDDEN)
+            paragraph = get_object_or_404(Paragraph,writing=writing,pk=paragraph_id)
+
+            serializer = ParagraphDetailSerializer(paragraph)
             return Response(data=serializer.data,status=status.HTTP_200_OK)
 
     def patch(self,request):
@@ -71,12 +87,12 @@ class ParagraphListAPIView(APIView):
 
         writing_id = request.GET.get('writing_id', None)
         if writing_id is None:
-            return Response(status=status.HTTP_402_PAYMENT_REQUIRED)
+            return Response(status=status.HTTP_403_FORBIDDEN)
         writing = get_object_or_404(Writing,writer=user,pk=writing_id)
 
         paragraph_id = request.GET.get('paragraph_id', None)
         if paragraph_id is None:
-            return Response(status=status.HTTP_402_PAYMENT_REQUIRED)
+            return Response(status=status.HTTP_403_FORBIDDEN)
         paragraph = get_object_or_404(Paragraph,writing=writing,pk=paragraph_id)
 
         paragraph.bookmark = True if paragraph.bookmark==False else False

@@ -46,3 +46,9 @@ class ParagraphListModelSerializer(ParagraphBaseModelSerializer):
     class Meta(ParagraphBaseModelSerializer.Meta):
         fields = ['pk','index','writing']
         depth = 1
+
+class ParagraphDetailSerializer(ModelSerializer):
+    writing = WritingBaseModelSerializer()
+    class Meta:
+        model = Paragraph
+        fields = ('pk','index','content','bookmark','writing')
