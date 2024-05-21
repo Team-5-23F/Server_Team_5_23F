@@ -29,14 +29,16 @@ def openai_call_by_prompt(prompt):
 @api_view(('POST',))
 @permission_classes([IsAuthenticated])
 def openai_translate(request):
-    prompt = ""
+    text = ""
     try:
-        prompt = json.loads(request.body)["Text"]
+        text = json.loads(request.body)["Text"]
     except:
         return Response(status=status.HTTP_400_BAD_REQUEST)
-    prompt += """1. translate the text that follows the input, without omitting anything.\n\
-            2. Translate Korean proper nouns as they are pronounced, without paraphrasing.\n\n\
-            """+str(prompt)
+    prompt = """[Task] Translate the Korean+English text, without omitting anything.\n\
+        [Input]: Korean or English Text\n\
+        [Output]: English Text\n\
+        [Requirements] Translate Korean proper nouns as they are pronounced, without paraphrasing.\n\n\
+        [Text]: """+str(text)
     response = openai_call_by_prompt(prompt)
     if response.status_code is not status.HTTP_200_OK:
         return Response(status=status.HTTP_503_SERVICE_UNAVAILABLE)
