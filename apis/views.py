@@ -91,28 +91,27 @@ def openai_feedback_line(request):
     prompt = ""
     try:
         prompt += """\
-[Description]: 하단에 오는 딕셔너리의 리스트는 Original에서 Translation으로 번역된 문장이야. TargetWord를 중심으로 Task1,2,3에 대한 답변을 한국말로 Json 형식으로 제공해줘. 이때 어떠한 인삿말이나 부가 적인 답변은 필요 없어.
-[Task1] : 문장에서 TargetWord를 중심으로 어색한 부분을 찾아 지적해줘.
-[Task2]: 어색한 부분을 해소한 개선된 문장을 제시해줘.
+[Description]: 하단에 오는 딕셔너리의 리스트는 Original에서 Translation으로 번역된 문장이야.  Task1,2,3에 대한 답변을 한국말로 Json 형식으로 제공해줘. 이때 어떠한 인삿말이나 부가 적인 답변은 필요 없어.
+[Task1] : Translation에서 Original과 비교했을 때 같은 의미를 전달하지 못하는 부분을 찾아 지적해줘.
+[Task2]: Translation과 같은 의미를 갖는 다른 문장을 제시해줘.
 [Task3]: 원래의 문장과 어떤 점이 달라졌는지 뉘앙스의 차이를 설명해줘.
 
 Example Question ( for me ):
 {
     "Original": "응답의 우선순위를 정할 수 있으면 일회성 상호작용이든, 개별 Customer와 더 깊이 개별 고객과 더 깊이 연결할 수 있습니다",
     "Translation": "If you can prioritize responses, you can deepen individual connections with individual customers, whether it's a one-time interaction or a long-term relationship with influential users based on customer interactions",
-    "TargetWord": "['If', 'can', 'prioritize', 'can', 'deepen', 'with', 'whether', \"'s\", 'with', 'based', 'on']"
 }
 
 Example Answer ( for you ):
 {
     "Sentence":"If you can prioritize responses, you can deepen individual connections with individual customers, whether it's a one-time interaction or a long-term relationship with influential users based on customer interactions",
-    "Task1": "'you can deepen individual connections with individual customers' 문장에서 'individual'이 반복 사용되어 어색하고, 'whether it's a one-time interaction or a long-term relationship with influential users based on customer interactions' 문장이 어색하게 구성되어 있습니다.",
-    "Task2": "If you can prioritize responses, you can deepen connections with customers, whether it's a one-time interaction or a long-term relationship based on customer interactions.",
-    "Task3": "수정된 문장은 'individual'의 반복을 제거하고 문장의 구조를 단순화하여 더 명확하고 읽기 쉽게 만들었습니다."
+    "Task1": "Translation에서 '개별 Customer와 더 깊이 개별 고객과 더 깊이 연결할 수 있습니다' 부분이 'whether it's a one-time interaction or a long-term relationship with influential users based on customer interactions'로 번역되면서 '영향력 있는 사용자와의 장기적인 관계'라는 의미가 추가되었습니다. Original에는 이런 내용이 없습니다.",
+    "Task2": "If you can prioritize responses, you can deepen individual connections with customers, whether it's a one-time interaction or not.",
+    "Task3": "번역된 문장은 원래 문장에 없는 '영향력 있는 사용자와의 장기적인 관계'라는 내용을 추가하여, 의미가 다소 변경되었습니다. 원래 문장은 일회성 상호작용이든 장기적인 관계든 상관없이 개별 고객과 깊이 연결할 수 있다는 것을 강조하고 있습니다."
 }
 
 
-""" + str(make_feedback_line(data))
+""" + str(data)
     except:
         return Response(status=status.HTTP_400_BAD_REQUEST)
     
@@ -120,7 +119,6 @@ Example Answer ( for you ):
 
     if response.status_code is not status.HTTP_200_OK:
         return Response(status=status.HTTP_503_SERVICE_UNAVAILABLE)
-    
     response_data = eval(response.data['Response'])
     
     return Response(response_data,status=status.HTTP_200_OK)
