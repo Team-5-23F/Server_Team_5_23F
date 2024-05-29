@@ -4,6 +4,7 @@ from rest_framework.renderers import JSONRenderer
 from rest_framework.decorators import api_view,permission_classes
 from rest_framework import status
 from GPT.views import get_gpt_response
+from NE.views import *
 from rest_framework.permissions import IsAuthenticated
 
 def parse_string_with_index_number(index_list):
@@ -29,21 +30,27 @@ def openai_call_by_prompt(prompt):
 @api_view(('POST',))
 @permission_classes([IsAuthenticated])
 def openai_translate(request):
-    text = ""
+    original = ""
     try:
-        text = json.loads(request.body)["Text"]
+        original = json.loads(request.body)["Text"]
     except:
         return Response(status=status.HTTP_400_BAD_REQUEST)
     prompt = """[Task] Translate the Korean+English text, without omitting anything.\n\
         [Input]: Korean or English Text\n\
         [Output]: English Text\n\
         [Requirements] Translate Korean proper nouns as they are pronounced, without paraphrasing.\n\n\
-        [Text]: """+str(text)
+        [Text]: """+str(original)
     response = openai_call_by_prompt(prompt)
     if response.status_code is not status.HTTP_200_OK:
         return Response(status=status.HTTP_503_SERVICE_UNAVAILABLE)
     
-    return Response({'Text':response.data['Response']})
+    translated = response.data['Response']
+
+    splitted = slice_text(original,translated)
+    return Response({
+        "Text":translated,
+        "Result":splitted,
+    },status=status.HTTP_200_OK)
 
 @api_view(['POST',])
 @permission_classes([IsAuthenticated])
@@ -84,21 +91,28 @@ def openai_feedback_line(request):
     prompt = ""
     try:
         prompt += """\
-[Task0]: Task1,2,3에 대한 답변을 제외하고 다른 어떤 답변이나 인사도 하지마, 형식은 Json 형식으로 제공해줘.
-[Task1] : 밑의 Sentence에서 조동사, 시제, 그리고 전치사를 위주로 어색한 부분을 찾아서 영어로 제시하고 이유를 한글로 설명해줘.
-[Task2]: 어색한 부분을 해결할 영문 대안을 제시해줘.
-[Task3]: 원래의 문장과 어떤 점이 달라졌는지 뉘앙스를 한국어로 설명해줘.
-[Senetence]: "%s"
+[Description]: 하단에 오는 딕셔너리의 리스트는 Original에서 Translation으로 번역된 문장이야. TargetWord를 중심으로 Task1,2,3에 대한 답변을 한국말로 Json 형식으로 제공해줘. 이때 어떠한 인삿말이나 부가 적인 답변은 필요 없어.
+[Task1] : 문장에서 TargetWord를 중심으로 어색한 부분을 찾아 지적해줘.
+[Task2]: 어색한 부분을 해소한 개선된 문장을 제시해줘.
+[Task3]: 원래의 문장과 어떤 점이 달라졌는지 뉘앙스의 차이를 설명해줘.
 
 Example Question ( for me ):
-[Sentence]: "There were psychological studies in which subjects were shown photographs of people’s faces and asked to identify the expression or state of mind evinced."
+{
+    "Original": "응답의 우선순위를 정할 수 있으면 일회성 상호작용이든, 개별 Customer와 더 깊이 개별 고객과 더 깊이 연결할 수 있습니다",
+    "Translation": "If you can prioritize responses, you can deepen individual connections with individual customers, whether it's a one-time interaction or a long-term relationship with influential users based on customer interactions",
+    "TargetWord": "['If', 'can', 'prioritize', 'can', 'deepen', 'with', 'whether', \"'s\", 'with', 'based', 'on']"
+}
 
 Example Answer ( for you ):
 {
-"Task1": "연구나 이론의 결과는 현재에도 영향이 있기 때문에 과거형 동사보다 현재완료형 동사가 어울립니다.",
-"Task2": "There were psychological studies in which subjects were shown photographs of people’s faces and asked to identify the expression or state of mind evinced.",
-"Task3": "연구가 과거에만 존재하던 뉘앙스에서 벗어나, 연구가 진행되었다는 의미를 잘 보여줍니다."
-}"""%data["Sentence"]
+    "Sentence":"If you can prioritize responses, you can deepen individual connections with individual customers, whether it's a one-time interaction or a long-term relationship with influential users based on customer interactions",
+    "Task1": "'you can deepen individual connections with individual customers' 문장에서 'individual'이 반복 사용되어 어색하고, 'whether it's a one-time interaction or a long-term relationship with influential users based on customer interactions' 문장이 어색하게 구성되어 있습니다.",
+    "Task2": "If you can prioritize responses, you can deepen connections with customers, whether it's a one-time interaction or a long-term relationship based on customer interactions.",
+    "Task3": "수정된 문장은 'individual'의 반복을 제거하고 문장의 구조를 단순화하여 더 명확하고 읽기 쉽게 만들었습니다."
+}
+
+
+""" + str(make_feedback_line(data))
     except:
         return Response(status=status.HTTP_400_BAD_REQUEST)
     
@@ -106,7 +120,8 @@ Example Answer ( for you ):
 
     if response.status_code is not status.HTTP_200_OK:
         return Response(status=status.HTTP_503_SERVICE_UNAVAILABLE)
-    response_data = parse_string_with_index_name(data["Sentence"],response.data['Response'])
+    
+    response_data = eval(response.data['Response'])
     
     return Response(response_data,status=status.HTTP_200_OK)
 
@@ -118,32 +133,47 @@ def openai_feedback_all(request):
     prompt = ""
     try:
         prompt += """\
-[Task0]: '[Writing]'을 문장별로 나누어서 Task1,2,3에 대한 답변을 Json 형식으로 제공해줘. 이때 어떠한 인삿말이나 부가 적인 답변은 필요 없어.
-[Task1] : 문장에서 어색한 부분을 찾아 지적해줘.
+[Description]: 하단에 오는 딕셔너리의 리스트는 Original에서 Translation으로 문장별로 번역된 글이야. TargetWord를 중심으로 Task1,2,3에 대한 답변을 한국말로 Json 형식으로 제공해줘. 이때 어떠한 인삿말이나 부가 적인 답변은 필요 없어.
+[Task1] : 문장에서 TargetWord를 중심으로 어색한 부분을 찾아 지적해줘.
 [Task2]: 어색한 부분을 해소한 개선된 문장을 제시해줘.
 [Task3]: 원래의 문장과 어떤 점이 달라졌는지 뉘앙스의 차이를 설명해줘.
-[Writing]: "%s"
+
 
 Example Question ( for me ):
-[Writing]: "If you can prioritize responses, you can deepen connections with individual customers, whether through one-off interactions or through more meaningful connections. Especially in cases where customers have posted favorable comments about a brand, product, or service. Think about how you would feel if your comment was personally acknowledged. And imagine how it would feel to be acknowledged by a brand manager. Generally, people post comments because they want their words to be acknowledged. Particularly when people post positive comments, it is an expression of gratitude. On the other hand, it is a sad fact that most brand compliments go unanswered. In such cases, missing the opportunity to understand the motivation behind the praise may lead to generating dissatisfaction, ultimately missing the chance to create loyal fans."
+[
+    {
+        "Original": "응답의 우선순위를 정할 수 있으면 일회성 상호작용이든, 개별 Customer와 더 깊이 개별 고객과 더 깊이 연결할 수 있습니다",
+        "Translation": "If you can prioritize responses, you can deepen individual connections with individual customers, whether it's a one-time interaction or a long-term relationship with influential users based on customer interactions",
+        "TargetWord": "['If', 'can', 'prioritize', 'can', 'deepen', 'with', 'whether', \"'s\", 'with', 'based', 'on']"
+    },
+    {
+        "Original": "특히 즐겁거나 화가 난 Experience에 대한 일회성 상호 작용 또는 Customer 기반 내에서 영향력 있는 User와 장기적인 Customer 기반 내에서 영향력 있는 개인과 장기적인 관계를 발전시킬 수 있습니다",
+        "Translation": "In particular, you can develop influential relationships with individuals and long-term customers based on one-time interactions or customers' experiences of joy or anger",
+        "TargetWord": "['In', 'can', 'develop', 'with', 'based', 'on', 'of']"
+    },
+    ...
+]
 
 Example Answer ( for you ):
 [
-{
-“Sentence”: "If you can prioritize responses, you can deepen connections with individual customers, whether through one-off interactions or through more meaningful connections.”,
-“Task1”: “문장의 흐름이 약간 어색한데, "whether through one-off interactions or through more meaningful connections" 부분이 더 자연스럽게 통일되어야 합니다.”,
-“Task2”: "By prioritizing responses, you can deepen connections with individual customers, whether through one-off interactions or through more substantial engagements.”,
-“Task3”: “수정된 문장은 구문의 일관성을 높이고, "substantial engagements"를 통해 보다 의미 있는 상호 작용에 대한 강조를 더합니다.”
-},
-{
-“Sentence”: “Especially in cases where customers have posted favorable comments about a brand, product, or service.”,
-“Task1”: “문장에서 "Especially in cases where"로 시작하는 부분이 조금 어색합니다.”,
-“Task2”: "Particularly when customers have posted favorable comments about a brand, product, or service.”,
-“Task3”: “원래의 문장은 특정 상황을 강조하려는 의도였지만, 수정된 문장은 보다 자연스럽게 그 강조를 전달합니다.”
-},
-…
-]\
-"""%data["Writing"]
+    {
+        "Sentence":"If you can prioritize responses, you can deepen individual connections with individual customers, whether it's a one-time interaction or a long-term relationship with influential users based on customer interactions",
+        "Task1": "'you can deepen individual connections with individual customers' 문장에서 'individual'이 반복 사용되어 어색하고, 'whether it's a one-time interaction or a long-term relationship with influential users based on customer interactions' 문장이 어색하게 구성되어 있습니다.",
+        "Task2": "If you can prioritize responses, you can deepen connections with customers, whether it's a one-time interaction or a long-term relationship based on customer interactions.",
+        "Task3": "수정된 문장은 'individual'의 반복을 제거하고 문장의 구조를 단순화하여 더 명확하고 읽기 쉽게 만들었습니다."
+    },
+    {
+        "Sentence": "In particular, you can develop influential relationships with individuals and long-term customers based on one-time interactions or customers' experiences of joy or anger",
+        "Task1": "'일회성 상호 작용 또는 Customer 기반 내에서 영향력 있는 User와 장기적인 Customer 기반 내에서 영향력 있는 개인과 장기적인 관계' 문장이 어색하고 반복적으로 사용되고 있습니다.",
+        "Task2": "In particular, you can develop influential relationships with individuals and long-term customers based on one-time interactions or impactful experiences.",
+        "Task3": "수정된 문장은 중복을 제거하고 문장을 간결하게 하여 전반적인 가독성과 흐름을 개선했습니다."
+    },
+    ...
+]
+
+
+
+"""+str(make_feedback_all(data["Writing"]))
     except:
         return Response(status=status.HTTP_400_BAD_REQUEST)
     

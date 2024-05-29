@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'GPT',
     'apis',
     'writings',
+    'NE',
 
     'drf_yasg',
     'openai',
