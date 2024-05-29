@@ -104,7 +104,7 @@ Example Question ( for me ):
 
 Example Answer ( for you ):
 {
-    "Sentence":"If you can prioritize responses, you can deepen individual connections with individual customers, whether it's a one-time interaction or a long-term relationship with influential users based on customer interactions",
+    "Translation":"If you can prioritize responses, you can deepen individual connections with individual customers, whether it's a one-time interaction or a long-term relationship with influential users based on customer interactions",
     "Task1": "Translation에서 '개별 Customer와 더 깊이 개별 고객과 더 깊이 연결할 수 있습니다' 부분이 'whether it's a one-time interaction or a long-term relationship with influential users based on customer interactions'로 번역되면서 '영향력 있는 사용자와의 장기적인 관계'라는 의미가 추가되었습니다. Original에는 이런 내용이 없습니다.",
     "Task2": "If you can prioritize responses, you can deepen individual connections with customers, whether it's a one-time interaction or not.",
     "Task3": "번역된 문장은 원래 문장에 없는 '영향력 있는 사용자와의 장기적인 관계'라는 내용을 추가하여, 의미가 다소 변경되었습니다. 원래 문장은 일회성 상호작용이든 장기적인 관계든 상관없이 개별 고객과 깊이 연결할 수 있다는 것을 강조하고 있습니다."
@@ -155,13 +155,13 @@ Example Question ( for me ):
 Example Answer ( for you ):
 [
     {
-        "Sentence":"If you can prioritize responses, you can deepen individual connections with individual customers, whether it's a one-time interaction or a long-term relationship with influential users based on customer interactions",
+        "Translation":"If you can prioritize responses, you can deepen individual connections with individual customers, whether it's a one-time interaction or a long-term relationship with influential users based on customer interactions",
         "Task1": "'you can deepen individual connections with individual customers' 문장에서 'individual'이 반복 사용되어 어색하고, 'whether it's a one-time interaction or a long-term relationship with influential users based on customer interactions' 문장이 어색하게 구성되어 있습니다.",
         "Task2": "If you can prioritize responses, you can deepen connections with customers, whether it's a one-time interaction or a long-term relationship based on customer interactions.",
         "Task3": "수정된 문장은 'individual'의 반복을 제거하고 문장의 구조를 단순화하여 더 명확하고 읽기 쉽게 만들었습니다."
     },
     {
-        "Sentence": "In particular, you can develop influential relationships with individuals and long-term customers based on one-time interactions or customers' experiences of joy or anger",
+        "Translation": "In particular, you can develop influential relationships with individuals and long-term customers based on one-time interactions or customers' experiences of joy or anger",
         "Task1": "'일회성 상호 작용 또는 Customer 기반 내에서 영향력 있는 User와 장기적인 Customer 기반 내에서 영향력 있는 개인과 장기적인 관계' 문장이 어색하고 반복적으로 사용되고 있습니다.",
         "Task2": "In particular, you can develop influential relationships with individuals and long-term customers based on one-time interactions or impactful experiences.",
         "Task3": "수정된 문장은 중복을 제거하고 문장을 간결하게 하여 전반적인 가독성과 흐름을 개선했습니다."
